@@ -17,7 +17,7 @@ class Homepage extends StatelessWidget {
         children: [
           Center(
             child: Container(
-              margin: EdgeInsets.only(top: 25),
+              margin: EdgeInsets.only(top: 27),
               height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
