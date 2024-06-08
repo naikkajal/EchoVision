@@ -3,29 +3,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chatbot/feature_box.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({Key? key}) : super(key: key);
 
   @override
-  State<Homepage> createState() => _HomepageState();
+  State<Homepage> createState() => _HomePageState();
 }
 
-class _HomepageState extends State<Homepage> {
-  late final SpeechToText speechToText;
-  String lastWords = ' ';
+class _HomePageState extends State<Homepage> {
+  final speechToText = SpeechToText();
+  final flutterTts = TextToSpeech();
+  String lastWords = '';
+  final OpenAIService openAIService = OpenAIService();
+  String? generatedContent;
+  String? generatedImageUrl;
+  int start = 200;
+  int delay = 200;
 
   @override
   void initState() {
     super.initState();
-    speechToText = SpeechToText();
     initSpeechToText();
+    initTextToSpeech();
+  }
+
+  Future<void> initTextToSpeech() async {
+    await flutterTts.setSharedInstance(true);
+    setState(() {});
   }
 
   Future<void> initSpeechToText() async {
-    if (!await speechToText.initialize()) {
-      print('SpeechToText initialization failed.');
-    }
+    await speechToText.initialize();
     setState(() {});
   }
 
@@ -40,18 +50,21 @@ class _HomepageState extends State<Homepage> {
   }
 
   void onSpeechResult(SpeechRecognitionResult result) {
-  setState(() {
-    lastWords = result.recognizedWords;
-    print('Recognized Words: $lastWords');
-  });
-}
+    setState(() {
+      lastWords = result.recognizedWords;
+    });
+  }
 
+  Future<void> systemSpeak(String content) async {
+    await flutterTts.speak(content);
+  }
 
   @override
   void dispose() {
     // TODO: implement dispose
     super.dispose();
     speechToText.stop();
+    flutterTts.stop();
   }
 
   @override
@@ -60,7 +73,7 @@ class _HomepageState extends State<Homepage> {
       appBar: AppBar(
         title: Text("Echo"),
         centerTitle: true,
-        leading: Icon(CupertinoIcons.bars),
+        leading: const Icon(CupertinoIcons.bars),
       ),
       body: Column(
         children: [
@@ -93,7 +106,9 @@ class _HomepageState extends State<Homepage> {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Text(
-                "Hello!! How Can I Help You Today?",
+                generatedContent == null
+                    ? "Hello!! How Can I Help You Today?"
+                    : generatedContent!,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
@@ -142,6 +157,17 @@ class _HomepageState extends State<Homepage> {
           if (await speechToText.hasPermission && speechToText.isNotListening) {
             await startListening();
           } else if (speechToText.isListening) {
+            final speech = await openAIService.isArtPromptAPI(lastWords);
+            if (speech.contains('https')) {
+              generatedImageUrl = speech;
+              generatedContent = null;
+              setState(() {});
+            } else {
+              generatedImageUrl = null;
+              generatedContent = speech;
+              setState(() {});
+              await systemSpeak(speech);
+            }
             await stopListening();
           } else {
             initSpeechToText();
