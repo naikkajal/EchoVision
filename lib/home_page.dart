@@ -71,7 +71,7 @@ class _HomePageState extends State<Homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Echo"),
+        title: Text("EchoVision"),
         centerTitle: true,
         leading: const Icon(CupertinoIcons.bars),
       ),
