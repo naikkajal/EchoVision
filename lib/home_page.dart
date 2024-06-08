@@ -103,7 +103,7 @@ class _HomepageState extends State<Homepage> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Padding(
-                padding: const EdgeInsets.only(left: 35),
+                padding: const EdgeInsets.only(left: 36),
                 child: Text("Here are a few features",
                     style: TextStyle(
                       fontSize: 20,
